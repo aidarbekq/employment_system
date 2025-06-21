@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 from .models import Employer
 from .serializers import EmployerSerializer
 
@@ -19,6 +19,8 @@ class IsEmployerOwnerOrReadOnly(permissions.BasePermission):
 class EmployerViewSet(viewsets.ModelViewSet):
     queryset = Employer.objects.all().select_related("user")
     serializer_class = EmployerSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["company_name", "address", "phone"]
 
     def get_permissions(self):
         if self.action in ("list", "retrieve"):
