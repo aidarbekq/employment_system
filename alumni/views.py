@@ -6,7 +6,8 @@ from django.http import HttpResponse
 from .models import AlumniProfile
 from .serializers import AlumniProfileSerializer, GetAlumniProfileSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 class IsAlumniOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -22,10 +23,14 @@ class IsAlumniOwnerOrReadOnly(permissions.BasePermission):
         # иначе, проверяем, что профиль принадлежит текущему юзеру
         return obj.user == request.user
 
+
 class AlumniProfileViewSet(viewsets.ModelViewSet):
     queryset = AlumniProfile.objects.all().select_related("user", "employer")
     serializer_class = AlumniProfileSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["graduation_year", "is_employed", "employer"]
+    search_fields = ["user__first_name", "user__last_name", "specialty"]
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
