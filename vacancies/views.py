@@ -1,6 +1,7 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 from .models import Vacancy
 from .serializers import VacancySerializer
+from django_filters.rest_framework import DjangoFilterBackend
 
 class IsVacancyOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -19,6 +20,9 @@ class IsVacancyOwnerOrReadOnly(permissions.BasePermission):
 class VacancyViewSet(viewsets.ModelViewSet):
     queryset = Vacancy.objects.all().select_related("employer")
     serializer_class = VacancySerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["is_active", "location", "salary", 'created_at']
+    search_fields = ["title", "description", "requirements"]
 
     def get_permissions(self):
         if self.action in ("list", "retrieve"):
@@ -32,8 +36,10 @@ class VacancyViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated and user.role == user.Roles.EMPLOYER:
-            # если работодатель, показываем только его вакансии (для CRUD)
-            return Vacancy.objects.filter(employer__user=user)
-        # для остальных отображаем только активные вакансии
+        if user.is_authenticated:
+            if user.role == user.Roles.EMPLOYER:
+                return Vacancy.objects.filter(employer__user=user)
+            if user.role == user.Roles.ADMIN:
+                return Vacancy.objects.all()  # админ видит всё
         return Vacancy.objects.filter(is_active=True)
+

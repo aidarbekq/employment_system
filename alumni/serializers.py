@@ -46,7 +46,9 @@ class AlumniProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ("user",)
         extra_kwargs = {
-            "resume": {"required": False},
-            "position": {"required": False},
-            "employer": {"required": False},
+            "resume": {"required": False, "allow_null": True},
+            "position": {"required": False, "allow_null": True},
+            "employer": {"required": False, "allow_null": True},
+            "graduation_year": {"required": False, "allow_null": True},
+            "specialty": {"required": False, "allow_null": True},
         }
