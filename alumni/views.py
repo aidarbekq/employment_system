@@ -50,11 +50,8 @@ class AlumniProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == user.Roles.ADMIN:
+        if user.role == user.Roles.ADMIN or user.role == user.Roles.EMPLOYER:
             return AlumniProfile.objects.all()
-        # если работодатель, он видит только “тех выпускников, кто трудоустроен на его компанию”
-        if user.role == user.Roles.EMPLOYER:
-            return AlumniProfile.objects.filter(employer__user=user)
         # обычный выпускник видит только свой
         return AlumniProfile.objects.filter(user=user)
 

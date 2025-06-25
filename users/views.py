@@ -19,3 +19,12 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class AdminUserDetailView(generics.RetrieveUpdateAPIView):
+    """
+    Позволяет админу смотреть и редактировать данные.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAdminUser,)

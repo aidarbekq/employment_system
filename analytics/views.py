@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
 from alumni.models import AlumniProfile
+from employers.models import Employer  # 👈 добавили
 from django.db.models import Count, Q
 
 class EmploymentStatsView(APIView):
@@ -10,17 +11,20 @@ class EmploymentStatsView(APIView):
       - общее количество выпускников по годам
       - количество трудоустроенных / безработных
       - % трудоустроенных
+      - общее количество работодателей
     Формат ответа:
     {
       "2021": {"total": 50, "employed": 35, "unemployed": 15, "percent_employed": 70.0},
-      "2022": {"total": 60, "employed": 50, "unemployed": 10, "percent_employed": 83.33},
       ...
+      "meta": {
+        "total_employers": 78
+      }
     }
     """
-    permission_classes = (permissions.IsAuthenticated,)  # доступно для авторизованных (либо можно AllowAny)
+    permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
-        # Группируем по graduation_year
+        # Группировка по году выпуска
         qs = AlumniProfile.objects.values("graduation_year").annotate(
             total=Count("id"),
             employed_count=Count("id", filter=Q(is_employed=True)),
@@ -40,4 +44,9 @@ class EmploymentStatsView(APIView):
                 "unemployed": unemployed,
                 "percent_employed": percent,
             }
+        total_employers = Employer.objects.count()
+        result["meta"] = {
+            "total_employers": total_employers
+        }
+
         return Response(result)
